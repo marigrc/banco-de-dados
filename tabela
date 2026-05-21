@@ -1,0 +1,330 @@
+CREATE DATABASE IF NOT EXISTS educart_db;
+USE educart_db;
+
+-- =========================
+-- PESSOA
+-- =========================
+CREATE TABLE tb_pessoa (
+    cpf CHAR(11) PRIMARY KEY,
+    nome VARCHAR(45),
+    sobrenome VARCHAR(45),
+    data_nascimento DATE,
+    email VARCHAR(50),
+    sexo CHAR(1)
+);
+
+-- =========================
+-- TELEFONE
+-- =========================
+CREATE TABLE tb_telefone (
+    pk_telefone INT AUTO_INCREMENT PRIMARY KEY,
+    fk_cpf CHAR(11),
+    ddi CHAR(3),
+    ddd CHAR(2),
+    numero VARCHAR(9),
+    tipo_telefone VARCHAR(15),
+    FOREIGN KEY (fk_cpf) REFERENCES tb_pessoa(cpf)
+);
+
+-- =========================
+-- ENDERECO
+-- =========================
+CREATE TABLE tb_endereco (
+    pk_endereco INT AUTO_INCREMENT PRIMARY KEY,
+    fk_cpf CHAR(11),
+    numero VARCHAR(10),
+    bairro VARCHAR(50),
+    cidade VARCHAR(50),
+    estado CHAR(2),
+    cep CHAR(8),
+    tipo_endereco ENUM('residencial','comercial','cobranca'),
+    FOREIGN KEY (fk_cpf) REFERENCES tb_pessoa(cpf)
+);
+
+-- =========================
+-- ALUNO
+-- =========================
+CREATE TABLE tb_aluno (
+    pk_aluno INT AUTO_INCREMENT PRIMARY KEY,
+    fk_cpf CHAR(11),
+    status_aluno VARCHAR(20),
+    FOREIGN KEY (fk_cpf) REFERENCES tb_pessoa(cpf)
+);
+
+-- =========================
+-- RESPONSAVEL
+-- =========================
+CREATE TABLE tb_responsavel (
+    pk_responsavel INT AUTO_INCREMENT PRIMARY KEY,
+    fk_cpf CHAR(11),
+    parentesco VARCHAR(10),
+    FOREIGN KEY (fk_cpf) REFERENCES tb_pessoa(cpf)
+);
+
+-- =========================
+-- RELACAO ALUNO-RESPONSAVEL
+-- =========================
+CREATE TABLE tb_aluno_responsavel (
+    fk_aluno INT,
+    fk_responsavel INT,
+    tipo_relacao VARCHAR(3),
+    PRIMARY KEY (fk_aluno, fk_responsavel),
+    FOREIGN KEY (fk_aluno) REFERENCES tb_aluno(pk_aluno),
+    FOREIGN KEY (fk_responsavel) REFERENCES tb_responsavel(pk_responsavel)
+);
+
+-- =========================
+-- CURSO
+-- =========================
+CREATE TABLE tb_curso (
+    pk_curso INT AUTO_INCREMENT PRIMARY KEY,
+    nome_curso VARCHAR(30),
+    periodo VARCHAR(30),
+    percentual_falta_limite INT
+);
+
+-- =========================
+-- DISCIPLINA
+-- =========================
+CREATE TABLE tb_disciplina (
+    pk_disciplina INT AUTO_INCREMENT PRIMARY KEY,
+    fk_curso INT,
+    nome VARCHAR(50),
+    carga_horaria INT,
+    descricao TEXT,
+    FOREIGN KEY (fk_curso) REFERENCES tb_curso(pk_curso)
+);
+
+-- =========================
+-- NIVEL ACADEMICO
+-- =========================
+CREATE TABLE tb_nivel_academico (
+    pk_nivel INT AUTO_INCREMENT PRIMARY KEY,
+    nome_nivel VARCHAR(40),
+    idade_minima INT
+);
+
+-- =========================
+-- PROFESSOR
+-- =========================
+CREATE TABLE tb_professor (
+    pk_professor INT AUTO_INCREMENT PRIMARY KEY,
+    fk_cpf CHAR(11),
+    status_professor VARCHAR(45),
+    data_criacao DATE,
+    ultima_atualizacao DATE,
+    area_atuacao VARCHAR(45),
+    FOREIGN KEY (fk_cpf) REFERENCES tb_pessoa(cpf)
+);
+
+-- =========================
+-- TURMA
+-- =========================
+CREATE TABLE tb_turma (
+    pk_turma INT AUTO_INCREMENT PRIMARY KEY,
+    fk_professor INT,
+    fk_disciplina INT,
+    fk_nivel INT,
+    ano_letivo INT,
+    semestre INT,
+    capacidade INT,
+    status VARCHAR(20),
+    sala VARCHAR(20),
+    FOREIGN KEY (fk_professor) REFERENCES tb_professor(pk_professor),
+    FOREIGN KEY (fk_disciplina) REFERENCES tb_disciplina(pk_disciplina),
+    FOREIGN KEY (fk_nivel) REFERENCES tb_nivel_academico(pk_nivel)
+);
+
+-- =========================
+-- PLANO PAGAMENTO
+-- =========================
+CREATE TABLE tb_planopagamento (
+    pk_plano INT AUTO_INCREMENT PRIMARY KEY,
+    fk_curso INT,
+    valor_total DECIMAL(10,2),
+    qtd_parcelas INT,
+    dia_vencimento INT,
+    FOREIGN KEY (fk_curso) REFERENCES tb_curso(pk_curso)
+);
+
+-- =========================
+-- MATRICULA
+-- =========================
+CREATE TABLE tb_matricula (
+    pk_matricula INT AUTO_INCREMENT PRIMARY KEY,
+    codigo_matricula VARCHAR(20),
+    fk_aluno INT,
+    fk_turma INT,
+    fk_plano INT,
+    data_efetivacao DATE,
+    status_matricula VARCHAR(20),
+    situacao VARCHAR(20),
+    FOREIGN KEY (fk_aluno) REFERENCES tb_aluno(pk_aluno),
+    FOREIGN KEY (fk_turma) REFERENCES tb_turma(pk_turma),
+    FOREIGN KEY (fk_plano) REFERENCES tb_planopagamento(pk_plano)
+);
+
+-- =========================
+-- FREQUENCIA
+-- =========================
+CREATE TABLE tb_frequencia (
+    pk_frequencia INT AUTO_INCREMENT PRIMARY KEY,
+    fk_matricula INT,
+    data_aula DATE,
+    status_presenca VARCHAR(20),
+    FOREIGN KEY (fk_matricula) REFERENCES tb_matricula(pk_matricula)
+);
+
+-- =========================
+-- HORARIO AULA
+-- =========================
+CREATE TABLE tb_horario_aula (
+    pk_horario INT AUTO_INCREMENT PRIMARY KEY,
+    fk_turma INT,
+    dia_semana VARCHAR(15),
+    hora_inicio TIME,
+    hora_fim TIME,
+    FOREIGN KEY (fk_turma) REFERENCES tb_turma(pk_turma)
+);
+
+-- =========================
+-- AVALIACAO
+-- =========================
+CREATE TABLE tb_avaliacao (
+    pk_avaliacao INT AUTO_INCREMENT PRIMARY KEY,
+    fk_matricula INT,
+    data_avaliacao DATE,
+    postura INT,
+    musicalidade INT,
+    tecnica_pes INT,
+    expressividade INT,
+    observacoes_professor TEXT,
+    FOREIGN KEY (fk_matricula) REFERENCES tb_matricula(pk_matricula)
+);
+
+-- =========================
+-- MENSALIDADE
+-- =========================
+CREATE TABLE tb_mensalidade (
+    pk_mensalidade INT AUTO_INCREMENT PRIMARY KEY,
+    fk_matricula INT,
+    fk_responsavel INT,
+    numero_parcela INT,
+    data_vencimento DATE,
+    data_pagamento DATE,
+    valor_parcela DECIMAL(10,2),
+    juros DECIMAL(10,2),
+    multa DECIMAL(10,2),
+    desconto DECIMAL(10,2),
+    status_pagamento VARCHAR(20),
+    FOREIGN KEY (fk_matricula) REFERENCES tb_matricula(pk_matricula),
+    FOREIGN KEY (fk_responsavel) REFERENCES tb_responsavel(pk_responsavel)
+);
+
+-- =========================
+-- FUNCIONARIO
+-- =========================
+CREATE TABLE tb_cargo (
+    pk_cargo INT AUTO_INCREMENT PRIMARY KEY,
+    nome_cargo VARCHAR(30),
+    salario_base DECIMAL(10,2),
+    carga_horaria INT,
+    descricao VARCHAR(100)
+);
+
+CREATE TABLE tb_funcionario (
+    pk_funcionario INT AUTO_INCREMENT PRIMARY KEY,
+    fk_cpf CHAR(11),
+    fk_cargo INT,
+    data_admissao DATE,
+    status_funcionario VARCHAR(30),
+    FOREIGN KEY (fk_cpf) REFERENCES tb_pessoa(cpf),
+    FOREIGN KEY (fk_cargo) REFERENCES tb_cargo(pk_cargo)
+);
+
+-- =========================
+-- PAGAMENTO
+-- =========================
+CREATE TABLE tb_pagamento (
+    pk_pagamento INT AUTO_INCREMENT PRIMARY KEY,
+    fk_mensalidade INT,
+    fk_funcionario INT,
+    data_pagamento DATE,
+    valor_pago DECIMAL(10,2),
+    metodo_pagamento VARCHAR(20),
+    status_pagamento VARCHAR(20),
+    codigo_transacao VARCHAR(50),
+    FOREIGN KEY (fk_mensalidade) REFERENCES tb_mensalidade(pk_mensalidade),
+    FOREIGN KEY (fk_funcionario) REFERENCES tb_funcionario(pk_funcionario)
+);
+
+-- =========================
+-- FOLHA PAGAMENTO
+-- =========================
+CREATE TABLE tb_folha_pagamento (
+    pk_folha INT AUTO_INCREMENT PRIMARY KEY,
+    fk_funcionario INT,
+    mes INT,
+    ano INT,
+    salario DECIMAL(10,2),
+    valor_desconto DECIMAL(10,2),
+    valor_liquido DECIMAL(10,2),
+    data_pagamento DATE,
+    FOREIGN KEY (fk_funcionario) REFERENCES tb_funcionario(pk_funcionario)
+);
+
+-- =========================
+-- REGISTRO PONTO
+-- =========================
+CREATE TABLE tb_registro_ponto (
+    pk_registro INT AUTO_INCREMENT PRIMARY KEY,
+    fk_funcionario INT,
+    data DATE,
+    hora_entrada TIME,
+    hora_saida TIME,
+    FOREIGN KEY (fk_funcionario) REFERENCES tb_funcionario(pk_funcionario)
+);
+
+-- =========================
+-- FERIAS
+-- =========================
+CREATE TABLE tb_ferias (
+    pk_ferias INT AUTO_INCREMENT PRIMARY KEY,
+    fk_funcionario INT,
+    data_inicio DATE,
+    data_fim DATE,
+    status ENUM('pendente','aprovada','reprovada'),
+    FOREIGN KEY (fk_funcionario) REFERENCES tb_funcionario(pk_funcionario)
+);
+
+-- =========================
+-- BENEFICIOS
+-- =========================
+CREATE TABLE tb_beneficios (
+    pk_beneficio INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50),
+    descricao TEXT,
+    valor DECIMAL(10,2)
+);
+
+CREATE TABLE tb_funcao_beneficio (
+    pk_funcao INT AUTO_INCREMENT PRIMARY KEY,
+    fk_funcionario INT,
+    fk_beneficio INT,
+    FOREIGN KEY (fk_funcionario) REFERENCES tb_funcionario(pk_funcionario),
+    FOREIGN KEY (fk_beneficio) REFERENCES tb_beneficios(pk_beneficio)
+);
+
+-- =========================
+-- CONTRATO FUNCIONARIO
+-- =========================
+CREATE TABLE tb_contrato_funcionario (
+    pk_contrato INT AUTO_INCREMENT PRIMARY KEY,
+    fk_funcionario INT,
+    tipo_contrato ENUM('clt','pj','estagio'), 
+    data_inicio DATE,
+    data_fim DATE,
+    salario DECIMAL(10,2),
+    carga_horaria INT,
+    FOREIGN KEY (fk_funcionario) REFERENCES tb_funcionario(pk_funcionario)
+);
