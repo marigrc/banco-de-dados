@@ -1,0 +1,74 @@
+Select/ Sub-select
+SELECT para listar todos os alunos ativos
+SELECT
+   Pk_aluno,
+   Fk_cpf,
+   status_aluno
+FROM tb_aluno --Define qual tabela os dados serão retirados
+WHERE status_aluno= ‘ATIVO’; -- Mostra apenas alunos ativos
+
+SELECT com JOIN
+SELECT
+   p.nome,
+   p.sobrenome,
+   m.codigo_matricula,
+   m.status_matricula
+FROM tb_matricula m
+INNER JOIN tb_aluno a
+   ON m.fk_aluno= a.pk_aluno –Define como as tabelas se relacionam
+INNER JOIN tb_pessoa p
+   ON a.fk_cpf = p.cpf;
+--INNER JOIN mostra somente registro que possuem relacionamentos entre as tabelas
+O comando deve mostrar uma tabela quem é o aluno, qual sua matrícula e a situação da matrícula no sistema. 
+
+SELECT média de avaliação por disciplina (agregação)
+SELECT 
+d.nome AS nome_disciplina, 
+AVG(av.postura) AS media_geral_postura --Calcula a média das notas de postura.
+FROM tb_disciplina d
+JOIN tb_turma t ON d.pk_disciplina = t.fk_disciplina 
+JOIN tb_matricula m ON t.pk_turma = m.fk_turma 
+JOIN tb_avaliacao av ON m.pk_matricula = av.fk_matricula
+GROUP BY d.nome --Agrupa os resultados por disciplina.
+HAVING d.nome IN (  --Mostra apenas disciplinas encontradas no subselect.
+   SELECT d.nome
+   FROM tb_disciplina d
+   JOIN tb_turma  t
+     ON d.pk_disciplina = t.fk_disciplina
+   WHERE t.ano_letivo = 2026
+);
+-- Esse código retorna o nome da disciplina e a média geral da nota de postura dos alunos, mas com o sub-select retorna somente das disciplinas que possuem turmas no ano letivo de 2026.
+
+SELECT média de falta (Correlacionado)
+SELECT 
+    p.nome AS nome_aluno,
+    t.pk_turma,
+    (SELECT COUNT(*) 
+     FROM tb_frequencia f 
+     WHERE f.fk_matricula = m.pk_matricula 
+     AND f.status_presenca = 'faltou') AS total_faltas_aluno
+FROM tb_aluno a
+JOIN tb_pessoa p ON a.fk_cpf = p.cpf
+JOIN tb_matricula m ON a.pk_aluno = m.fk_aluno
+JOIN tb_turma t ON m.fk_turma = t.pk_turma
+WHERE (
+    -- Subconsulta Correlacionada
+    SELECT COUNT(*) 
+    FROM tb_frequencia f2
+    JOIN tb_matricula m2 ON f2.fk_matricula = m2.pk_matricula
+    WHERE m2.fk_turma = t.pk_turma -- Conexão com a turma da consulta externa
+    AND f2.status_presenca = 'faltou'
+) 
+   (
+    SELECT COUNT(DISTINCT m3.fk_aluno) 
+    FROM tb_matricula m3 
+    WHERE m3.fk_turma = t.pk_turma
+) <
+   (
+    SELECT COUNT(*) 
+    FROM tb_frequencia f3 
+    WHERE f3.fk_matricula = m.pk_matricula 
+    AND f3.status_presenca = 'faltou'
+);
+
+Este comando retorna uma listagem de alunos faltantes. A Escola Educart recebe uma lista pronta de quais alunos estão faltando mais que o normal em cada modalidade.
