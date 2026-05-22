@@ -1,0 +1,32 @@
+-- CRIAÇÃO DAS DIMENSÕES (Modelo Estrela)
+CREATE TABLE IF NOT EXISTS dim_tempo (
+    sk_tempo INT AUTO_INCREMENT PRIMARY KEY, 
+    data_completa DATE NOT NULL UNIQUE,
+    dia INT NOT NULL,
+    mes INT NOT NULL,
+    ano INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS dim_aluno (
+    sk_aluno INT AUTO_INCREMENT PRIMARY KEY, 
+    nk_aluno INT NOT NULL UNIQUE,            
+    nome_completo VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS dim_curso (
+    sk_curso INT AUTO_INCREMENT PRIMARY KEY, 
+    nk_curso INT NOT NULL UNIQUE,            
+    nome_curso VARCHAR(30) NOT NULL
+);
+
+-- CRIAÇÃO DA TABELA FATO
+CREATE TABLE IF NOT EXISTS fato_faturamento (
+    sk_faturamento INT AUTO_INCREMENT PRIMARY KEY,
+    fk_tempo INT NOT NULL,
+    fk_aluno INT NOT NULL,
+    fk_curso INT NOT NULL,
+    valor_faturado DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (fk_tempo) REFERENCES dim_tempo(sk_tempo),
+    FOREIGN KEY (fk_aluno) REFERENCES dim_aluno(sk_aluno),
+    FOREIGN KEY (fk_curso) REFERENCES dim_curso(sk_curso)
+);
