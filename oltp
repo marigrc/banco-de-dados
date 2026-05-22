@@ -1,0 +1,26 @@
+START TRANSACTION;
+
+INSERT INTO tb_pessoa 
+(cpf, nome, sobrenome, data_nascimento, email, sexo)
+VALUES 
+('99988877700', 'Ana', 'Silva', '2015-05-10', 'mae.ana@email.com', 'F');
+
+INSERT INTO tb_aluno 
+(fk_cpf, status_aluno)
+VALUES 
+('99988877700', 'ATIVO');
+
+INSERT INTO tb_matricula 
+(codigo_matricula, fk_aluno, fk_turma, data_efetivacao, 
+status_matricula, situacao)
+SELECT 
+'BAL-2026-001', 
+pk_aluno, 
+1, 
+CURDATE(), 
+'ATIVA', 
+'REGULAR'
+FROM tb_aluno 
+WHERE fk_cpf = '99988877700';
+
+COMMIT;
