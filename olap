@@ -1,0 +1,27 @@
+-- CONSULTA ANALÍTICA (O Resultado Final da Fase 4)SELECT
+
+t.ano AS 'Ano',
+
+t.mes AS 'Mês',
+
+c.nome_curso AS 'Curso',
+
+SUM(f.valor_faturado) AS 'Faturamento Total',
+
+COUNT(f.sk_faturamento) AS 'Volume de Mensalidades'FROM
+
+fato_faturamento fJOIN
+
+dim_tempo t ON f.fk_tempo = t.sk_tempoJOIN
+
+dim_curso c ON f.fk_curso = c.sk_cursoGROUP BY
+
+t.ano,
+
+t.mes,
+
+c.nome_cursoORDER BY
+
+t.ano DESC,
+
+t.mes DESC; 
